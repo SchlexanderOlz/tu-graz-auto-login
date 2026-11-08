@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "Zweitschlüssel – OTP autofill for TU Graz (unofficial)",
+  "short_name": "Zweitschlüssel",
+  "version": "0.1.0",
+  "description": "Unofficial TOTP token that fills in your TU Graz 2FA code on the login page. Not affiliated with TU Graz.",
+  "minimum_chrome_version": "110",
+  "permissions": ["storage"],
+  "background": { "service_worker": "src/background.js", "type": "module" },
+  "content_scripts": [
+    {
+      "matches": ["https://online.tugraz.at/*", "https://sso.tugraz.at/*"],
+      "js": ["src/content.js"],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ],
+  "action": {
+    "default_popup": "src/popup.html",
+    "default_title": "Zweitschlüssel",
+    "default_icon": { "16": "icons/icon16.png", "32": "icons/icon32.png", "48": "icons/icon48.png" }
+  },
+  "options_ui": { "page": "src/options.html", "open_in_tab": true },
+  "icons": { "16": "icons/icon16.png", "32": "icons/icon32.png", "48": "icons/icon48.png", "128": "icons/icon128.png" },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'none'; connect-src 'none'; base-uri 'none'"
+  }
+}

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Zweitschlüssel settings</title>
+  <link rel="stylesheet" href="ui.css">
+  <style>
+    main { max-width: 640px; margin: 0 auto; padding: 24px 16px 48px; }
+    ol { padding-left: 20px; margin: 0 0 10px; }
+    li { margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Zweitschlüssel</h1>
+  <p class="muted">Unofficial OTP autofill for TU Graz. Not made, endorsed or reviewed by TU Graz.
+    Your key never leaves this browser, and the extension can't make network requests.</p>
+
+  <!-- ===== setup ===== -->
+  <section id="v-setup" class="hidden">
+    <div class="card">
+      <h2>1. Get a setup key from TU Graz</h2>
+      <ol>
+        <li>Open <code>otp.tugraz.at</code> and add a new <b>TOTP</b> token (you need the one-time registration code, or your current OTP if you already have a token).</li>
+        <li>Copy the <code>otpauth://</code> link shown with the QR code, or the key itself.</li>
+        <li>Leave that page open. You will type a code from here into “Verify token” there.</li>
+      </ol>
+      <p class="small muted">This uses 1 of your 4 TU Graz tokens. Keep a second token on your phone in case this browser profile is lost.</p>
+    </div>
+
+    <form class="card" id="setup-form" autocomplete="off">
+      <h2>2. Paste it here</h2>
+      <label for="input">Setup key or otpauth:// link</label>
+      <textarea id="input" spellcheck="false" placeholder="otpauth://totp/ZID%20TU%20Graz:...?secret=...&algorithm=SHA256&digits=6&period=60"></textarea>
+      <div class="small muted" id="detected"></div>
+
+      <div class="row">
+        <div><label for="alg">Algorithm</label>
+          <select id="alg"><option>SHA256</option><option>SHA1</option><option>SHA512</option></select></div>
+        <div><label for="digits">Digits</label><input type="number" id="digits" min="6" max="8" value="6"></div>
+        <div><label for="period">Period (s)</label><input type="number" id="period" min="10" max="300" value="60"></div>
+      </div>
+      <p class="small muted">A pasted link fills these in. For a bare key, TU Graz's documented values (SHA256, 6 digits, 60 s) are used.</p>
+
+      <h2 style="margin-top:16px">3. Protect it</h2>
+      <label for="pp1">Passphrase (at least 8 characters)</label>
+      <input type="password" id="pp1" autocomplete="new-password">
+      <label for="pp2">Repeat passphrase</label>
+      <input type="password" id="pp2" autocomplete="new-password">
+      <p class="small muted">You type it once per browser session. The key is stored encrypted (AES-256-GCM, PBKDF2 600,000 rounds).</p>
+      <label class="inline"><input type="checkbox" id="plain"> Store without a passphrase (fully automatic)</label>
+      <div class="warn hidden" id="plain-warn">Without a passphrase, anyone who can read your Chrome profile can make your TU Graz codes forever. Only do this on a computer that only you use, with disk encryption.</div>
+
+      <div class="error" id="setup-err"></div>
+      <div class="actions"><button class="primary" type="submit" id="save">Save token</button></div>
+    </form>
+  </section>
+
+  <!-- ===== configured ===== -->
+  <section id="v-ready" class="hidden">
+    <div class="card">
+      <h2>Current code</h2>
+      <div class="muted small" id="who"></div>
+      <div id="code-box">
+        <div class="code" id="code">––– –––</div>
+        <div class="bar"><div id="bar"></div></div>
+        <p class="small muted" style="margin-top:8px">First time? Type this code into “Verify token” on <code>otp.tugraz.at</code>. If TU Graz accepts it, the setup is correct.</p>
+      </div>
+      <form id="unlock-form" class="hidden">
+        <label for="upp">Passphrase</label>
+        <input type="password" id="upp" autocomplete="current-password">
+        <div class="error" id="unlock-err"></div>
+        <button class="primary" type="submit">Unlock</button>
+      </form>
+    </div>
+
+    <form class="card" id="settings-form">
+      <h2>Settings</h2>
+      <label class="inline"><input type="checkbox" id="s-autofill"> Fill in the code when the TU Graz login asks for it</label>
+      <label class="inline"><input type="checkbox" id="s-autosubmit"> Also submit it</label>
+      <div class="row">
+        <div><label for="s-lock">Auto-lock (minutes, 0 = when Chrome closes)</label><input type="number" id="s-lock" min="0" max="1440"></div>
+        <div><label for="s-offset">Clock correction (seconds)</label><input type="number" id="s-offset" min="-600" max="600"></div>
+        <div></div>
+      </div>
+      <p class="small muted" id="params"></p>
+      <div class="error" id="settings-err"></div>
+      <span class="ok small" id="settings-ok"></span>
+    </form>
+
+    <div class="card">
+      <h2>Key</h2>
+      <form id="reveal-form">
+        <label for="rpp" id="rpp-label">Passphrase</label>
+        <input type="password" id="rpp" autocomplete="current-password">
+        <div class="error" id="reveal-err"></div>
+        <div class="actions"><button type="submit">Show key</button></div>
+      </form>
+      <pre id="revealed" class="hidden" style="white-space:pre-wrap;word-break:break-all"></pre>
+      <div class="actions"><button class="danger" id="reset">Remove token from this browser</button></div>
+    </div>
+  </section>
+
+  <p class="small muted">“TU Graz” is a registered trademark of Technische Universität Graz and is used here only to describe what this extension works with.</p>
+</main>
+<script type="module" src="options.js"></script>
+</body>
+</html>

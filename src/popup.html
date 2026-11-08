@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Zweitschlüssel</title>
+  <link rel="stylesheet" href="ui.css">
+  <style>
+    body { width: 300px; padding: 14px; }
+    .card { margin-bottom: 10px; padding: 14px; }
+    .top { display: flex; justify-content: space-between; align-items: baseline; }
+  </style>
+</head>
+<body>
+  <div class="top"><h1>Zweitschlüssel</h1><span class="muted small">unofficial</span></div>
+
+  <section id="v-setup" class="card hidden">
+    <p>No token set up yet.</p>
+    <button class="primary" id="open-setup">Set up</button>
+  </section>
+
+  <section id="v-locked" class="card hidden">
+    <form id="unlock-form">
+      <label for="pp">Passphrase</label>
+      <input type="password" id="pp" autocomplete="current-password" autofocus>
+      <div class="error" id="unlock-err"></div>
+      <button class="primary" type="submit">Unlock</button>
+    </form>
+  </section>
+
+  <section id="v-code" class="hidden">
+    <div class="card">
+      <div class="muted small" id="who"></div>
+      <div class="code" id="code" aria-live="polite">––– –––</div>
+      <div class="bar"><div id="bar"></div></div>
+      <div class="actions">
+        <button class="primary" id="copy">Copy</button>
+        <button id="lock">Lock</button>
+      </div>
+    </div>
+    <div class="card warn hidden" id="paused">
+      <p>A code was rejected, so autofill is paused to keep your token from being locked. Check your clock and the key.</p>
+      <button id="resume">Resume autofill</button>
+    </div>
+    <div class="card">
+      <label class="inline"><input type="checkbox" id="autofill"> Fill in the code on the TU Graz login</label>
+      <label class="inline"><input type="checkbox" id="autosubmit"> Also submit it</label>
+    </div>
+  </section>
+
+  <div class="actions"><button id="settings">Settings</button></div>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

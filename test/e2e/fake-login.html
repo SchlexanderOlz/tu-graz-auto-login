@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="de">
+<head><meta charset="utf-8"><title>Fake TUGRAZonline login (test fixture)</title></head>
+<body>
+<!-- Test fixture only. Imitates an SPA that swaps the password step for an OTP step
+     and keeps its own model updated from "input" events, like Angular does. -->
+<div id="app"></div>
+<script>
+  const params = new URLSearchParams(location.search);
+  const rejectAll = params.get('reject') === '1';
+  window.submissions = [];
+  let model = '';
+  const app = document.getElementById('app');
+
+  function otpStep(error) {
+    app.innerHTML = `
+      <form id="f" onsubmit="return false">
+        <div class="mat-form-field">
+          <label for="tok">Einmalpasswort (OTP)</label>
+          <input id="tok" formcontrolname="otp" type="text" inputmode="numeric" maxlength="6" autocomplete="off">
+        </div>
+        ${error ? '<div class="err">Ungültiger Code. Bitte erneut versuchen.</div>' : ''}
+        <button type="button" id="cancel">Abbrechen</button>
+        <button type="submit" id="go">Anmelden</button>
+      </form>`;
+    model = '';
+    document.getElementById('tok').addEventListener('input', (e) => (model = e.target.value));
+    document.getElementById('f').addEventListener('submit', () => {
+      window.submissions.push(model);
+      if (rejectAll) setTimeout(() => otpStep(true), 200);
+      else app.innerHTML = '<h1 id="done">Willkommen</h1>';
+    });
+  }
+
+  // Password step first, OTP step appears later without a page load.
+  app.innerHTML = '<label>Benutzername <input name="user"></label><label>Passwort <input type="password" name="pw"></label>';
+  setTimeout(() => otpStep(false), 800);
+</script>
+</body>
+</html>
