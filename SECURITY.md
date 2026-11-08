@@ -6,7 +6,7 @@ Never send your real setup key, a passphrase or a live code in any report or iss
 
 What counts:
 - The key or a code reaching a page or a network request.
-- Autofill on a site other than `online.tugraz.at` or `sso.tugraz.at`.
+- Autofill on a site other than `auth.tugraz.at`, `online.tugraz.at` or `sso.tugraz.at`.
 - The extension submitting more than one automatic code per login, which risks locking your token.
 - A weakness in the encryption of the stored key.
 

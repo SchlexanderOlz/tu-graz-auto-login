@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="de">
+<head><meta charset="utf-8"><title>Fake TU Graz Keycloak OTP step (test fixture)</title></head>
+<body>
+<!-- Test fixture only. Markup copied from the real auth.tugraz.at OTP step (2026-11-08):
+     form#kc-otp-login-form, input#otp (autocomplete=new-password, inputmode=numeric),
+     submit input#kc-login "Anmelden". A wrong code reloads the page with an error box. -->
+<div id="kc-content-wrapper">
+  <h1>Single Sign-On</h1>
+  <!--ERROR-->
+  <form id="kc-otp-login-form" class="form-horizontal" action="__ACTION__" method="post">
+    <div class="form-group">
+      <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+        <div class="">
+          <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            <label for="otp"><span class="pf-c-form__label pf-c-form__label-text">Bitte geben Sie einen OTP-Wert ein: </span></label>
+          </div>
+          <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+            <input id="otp" name="otp" type="text" inputmode="numeric" autocomplete="new-password" value="" class="pf-c-form-control" autofocus="">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="kc-username" class="form-group"></div>
+    <input class="pf-c-button pf-m-primary pf-m-block" name="login" id="kc-login" type="submit" value="Anmelden">
+    <input type="hidden" id="authenticationFormResult" name="authenticationFormResult" value="">
+    <input type="hidden" id="authenticationForm" name="authenticationForm" value="">
+    <div id="alternateToken" class="col-xs-12" style="display:none"><h3 id="alternateTokenHeader">Andere Anmeldeoptionen</h3></div>
+  </form>
+</div>
+</body>
+</html>

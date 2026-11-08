@@ -13,6 +13,9 @@
   const SUBMIT_RE = /anmelden|einloggen|log ?in|sign ?in|weiter|best[äa]tigen|absenden|pr[üu]fen|verif|submit|continue|^\s*ok\s*$/i;
   const TEXTISH = new Set(['text', 'tel', 'number', 'password', '']);
   const REJECT_WINDOW_MS = 60_000;
+  // Error boxes of Keycloak (auth.tugraz.at) and generic alerts.
+  const ERROR_SELECTOR =
+    '#input-error, .kc-feedback-text, .alert-error, .alert-danger, .pf-c-alert.pf-m-danger, .pf-m-error, [role="alert"]';
 
   let busy = false;
   let attemptAt = 0; // when we auto-submitted on this page
@@ -179,6 +182,16 @@
     if (f?.isConnected && isVisible(f) && ERROR_RE.test(nearbyText(f))) markRejected(f);
   }
 
+  // Keycloak answers a wrong code with a full page reload that shows an error box.
+  // On such a page we never try automatically: a second wrong code brings the token closer to a lock.
+  function visibleError() {
+    for (const el of document.querySelectorAll(ERROR_SELECTOR)) {
+      const t = (el.innerText || '').trim();
+      if (t && isVisible(el)) return t;
+    }
+    return '';
+  }
+
   // ---------- banner (closed shadow root, trusted clicks only) ----------
 
   function hideBanner() {
@@ -222,6 +235,11 @@
     if (!field) return;
 
     if (attemptAt) return; // after our one try, only checkRejected() runs
+
+    if (visibleError()) {
+      await markRejected(field);
+      return;
+    }
 
     busy = true;
     try {

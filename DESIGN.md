@@ -1,6 +1,6 @@
 # Design: unofficial OTP autofill for TU Graz
 
-Status: v0.1.0 built, 2026-11-08. Autofill is tested against a fake login page only (see section 9).
+Status: v0.1.1, 2026-11-08. The OTP step runs on auth.tugraz.at (Keycloak: form #kc-otp-login-form, input #otp). Autofill is tested against a copy of that markup.
 
 A Chrome extension (Manifest V3) that works as a software TOTP token for TU Graz 2FA. You paste the setup key once. The extension then makes the codes itself, entirely in the browser, and fills in the OTP when the TUGRAZonline or SSO login asks for it.
 

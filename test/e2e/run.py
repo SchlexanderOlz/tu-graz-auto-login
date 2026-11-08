@@ -12,6 +12,10 @@ from playwright.sync_api import sync_playwright
 
 ROOT = Path(os.environ.get('EXT_DIR') or Path(__file__).resolve().parents[2])  # EXT_DIR: test an unzipped build
 FIXTURE = Path(__file__).with_name('fake-login.html').read_bytes()
+KEYCLOAK = Path(__file__).with_name('keycloak-otp.html').read_text()
+KC_PATH = '/auth/realms/tugraz/login-actions/authenticate'
+KC_ERROR = '<div class="alert-error pf-c-alert pf-m-danger"><span class="kc-feedback-text">Ung\u00fcltiger Einmalcode.</span></div>'
+posts = []  # (query, otp) for every Keycloak form submit
 SECRET = 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ'
 URI = f'otpauth://totp/ZID%20TU%20Graz:test?secret={SECRET}&issuer=ZID%20TU%20Graz&algorithm=sha256&digits=6&period=60'
 
@@ -25,11 +29,29 @@ def totp(secret, period=60, digits=6, t=None):
 
 
 class Handler(http.server.BaseHTTPRequestHandler):
-    def do_GET(self):
+    def _send(self, body):
         self.send_response(200)
         self.send_header('Content-Type', 'text/html; charset=utf-8')
         self.end_headers()
-        self.wfile.write(FIXTURE)
+        self.wfile.write(body.encode() if isinstance(body, str) else body)
+
+    def _keycloak(self, error):
+        return KEYCLOAK.replace('__ACTION__', self.path).replace('<!--ERROR-->', KC_ERROR if error else '')
+
+    def do_GET(self):
+        if self.headers.get('Host', '').startswith('auth.tugraz.at'):
+            return self._send(self._keycloak(False))
+        self._send(FIXTURE)
+
+    def do_POST(self):
+        from urllib.parse import parse_qs, urlsplit
+        n = int(self.headers.get('Content-Length', 0))
+        form = parse_qs(self.rfile.read(n).decode())
+        query = urlsplit(self.path).query
+        posts.append((query, form.get('otp', [''])[0]))
+        if 'reject=1' in query:
+            return self._send(self._keycloak(True))
+        self._send('<h1 id="done">Willkommen</h1>')
 
     def log_message(self, *a):
         pass
@@ -69,7 +91,7 @@ def main():
             ctx = p.chromium.launch_persistent_context(
                 str(tmp / 'profile'), headless=False,
                 args=['--headless=new', f'--disable-extensions-except={ROOT}', f'--load-extension={ROOT}',
-                      f'--host-resolver-rules=MAP online.tugraz.at:443 127.0.0.1:{port}', '--ignore-certificate-errors'])
+                      f'--host-resolver-rules=MAP online.tugraz.at:443 127.0.0.1:{port}, MAP auth.tugraz.at:443 127.0.0.1:{port}', '--ignore-certificate-errors'])
             sw = ctx.service_workers[0] if ctx.service_workers else ctx.wait_for_event('serviceworker')
             ext_id = sw.url.split('/')[2]
 
@@ -114,6 +136,27 @@ def main():
             check('after a rejected code there is no retry', len(subs) == 1, str(subs))
             paused = sw.evaluate("chrome.storage.session.get('paused').then(r => Boolean(r.paused))")
             check('autofill is paused after rejection', paused)
+
+            # --- real host: Keycloak OTP step on auth.tugraz.at ---
+            sw.evaluate("chrome.storage.session.remove(['lastAuto','paused'])")
+            sw.evaluate("chrome.action.setBadgeText({text: ''})")
+            wait_safe_window()
+            kc = ctx.new_page()
+            kc.goto(f'https://auth.tugraz.at{KC_PATH}?session_code=abc')
+            kc.wait_for_selector('#done', timeout=10000)
+            check('keycloak: one correct code posted', posts == [('session_code=abc', totp(SECRET))], str(posts))
+
+            # --- keycloak rejects: full page reload with error box, must not retry and must pause ---
+            posts.clear()
+            sw.evaluate("chrome.storage.session.remove(['lastAuto','paused'])")
+            wait_safe_window()
+            kc2 = ctx.new_page()
+            kc2.goto(f'https://auth.tugraz.at{KC_PATH}?reject=1')
+            time.sleep(6)
+            check('keycloak reject: exactly one post, no retry', len(posts) == 1, str(posts))
+            paused = sw.evaluate("chrome.storage.session.get('paused').then(r => Boolean(r.paused))")
+            check('keycloak reject: autofill paused', paused)
+            check('keycloak reject: field left empty', kc2.input_value('#otp') == '')
 
             # --- locked: after lock, nothing is filled ---
             sw.evaluate("chrome.storage.session.clear()")

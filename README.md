@@ -6,13 +6,13 @@ A Chrome extension that acts as your TU Graz 2FA token. You paste the setup key 
 
 - **No network access.** The extension's security policy blocks all requests (`connect-src 'none'`), so your key can't leave the browser.
 - **No dependencies, no build step.** About 1,200 lines of plain JavaScript, HTML and CSS you can read in one sitting.
-- **Minimal permissions.** It only needs `storage`, and it only runs on `online.tugraz.at` and `sso.tugraz.at`.
+- **Minimal permissions.** It only needs `storage`, and it only runs on the TU Graz login hosts `auth.tugraz.at`, `online.tugraz.at` and `sso.tugraz.at`.
 - **Encrypted key.** The key is protected with a passphrase you type once per browser session (AES-256-GCM, PBKDF2 with 600,000 rounds).
 - **Lockout protection.** It tries at most one automatic code per login. If a code is rejected, autofill pauses, so TU Graz never locks your token.
 
 ## Install
 
-1. Download **[`dist/zweitschluessel-0.1.0.zip`](dist/zweitschluessel-0.1.0.zip)**, or get it from the [latest release](../../releases/latest).
+1. Download **[`dist/zweitschluessel-0.1.1.zip`](dist/zweitschluessel-0.1.1.zip)**, or get it from the [latest release](../../releases/latest).
 2. **Unzip it.** Chrome can't install a zip directly. You get a folder named `zweitschluessel`.
 3. Open `chrome://extensions` and switch on **Developer mode** (top right).
 4. Click **Load unpacked** and choose the `zweitschluessel` folder.
@@ -51,8 +51,9 @@ Found a problem? See [SECURITY.md](SECURITY.md).
 
 ## Status and limits
 
-- **Version 0.1.0.** The code generator is tested against the RFC 4226 and RFC 6238 test vectors.
-- **Autofill is tested against a fake login page that behaves like TUGRAZonline, not against the real one.** Spotting the OTP field relies on its label and attributes ("Einmalpasswort", "OTP", "Token", `autocomplete="one-time-code"`, …). If it doesn't fill in on the real page, open an issue with the OTP field's HTML (right-click → Inspect → copy `outerHTML`; never include your code or key). Meanwhile, use Copy in the popup.
+- **Version 0.1.1.** The OTP step runs on `auth.tugraz.at` (Keycloak). Autofill is built for that page's real markup.
+- The code generator is tested against the RFC 4226 and RFC 6238 test vectors.
+- **Autofill is tested in Chromium against a copy of the real `auth.tugraz.at` OTP form** (field `#otp`, button "Anmelden", full page reload on a wrong code). If TU Graz changes the page and autofill stops working, open an issue with the OTP field's HTML (right-click → Inspect → copy `outerHTML`; never include your code or key). Meanwhile, use Copy in the popup.
 - **Only TUGRAZonline and the TU Graz SSO are covered.** The VPN client is not.
 
 ## Development

@@ -1,6 +1,6 @@
 {
   "name": "zweitschluessel",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Unofficial TOTP token and OTP autofill for TU Graz logins. Development scripts only; the extension itself has no dependencies.",
   "type": "module",

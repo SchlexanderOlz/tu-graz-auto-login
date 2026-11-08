@@ -6,7 +6,8 @@ import { totp } from './totp.js';
 import { encryptSecret, decryptSecret } from './vault.js';
 import { parseSetupInput, validateParams } from './otpauth.js';
 
-const LOGIN_HOSTS = ['online.tugraz.at', 'sso.tugraz.at'];
+// auth.tugraz.at is the Keycloak SSO where the OTP step actually happens (checked 2026-11-08).
+const LOGIN_HOSTS = ['auth.tugraz.at', 'online.tugraz.at', 'sso.tugraz.at'];
 const DEFAULT_SETTINGS = { autofill: true, autoSubmit: true, lockMinutes: 0, offset: 0 };
 const MIN_VALID_SECONDS = 5;
 const MIN_PASSPHRASE = 8;
