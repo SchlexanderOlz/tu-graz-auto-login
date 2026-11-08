@@ -10,7 +10,7 @@ import base64, hashlib, hmac, http.server, os, ssl, struct, subprocess, sys, tem
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(os.environ.get('EXT_DIR') or Path(__file__).resolve().parents[2])  # EXT_DIR: test an unzipped build
 FIXTURE = Path(__file__).with_name('fake-login.html').read_bytes()
 SECRET = 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ'
 URI = f'otpauth://totp/ZID%20TU%20Graz:test?secret={SECRET}&issuer=ZID%20TU%20Graz&algorithm=sha256&digits=6&period=60'

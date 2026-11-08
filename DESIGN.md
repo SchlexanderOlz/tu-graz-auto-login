@@ -1,6 +1,6 @@
 # Design: unofficial OTP autofill for TU Graz
 
-Status: draft, 2026-11-08. Nothing is built yet.
+Status: v0.1.0 built, 2026-11-08. Autofill is tested against a fake login page only (see section 9).
 
 A Chrome extension (Manifest V3) that works as a software TOTP token for TU Graz 2FA. You paste the setup key once. The extension then makes the codes itself, entirely in the browser, and fills in the OTP when the TUGRAZonline or SSO login asks for it.
 
@@ -94,7 +94,7 @@ test/                RFC 6238 test vectors, run with `node --test`
     ],
     "js": ["src/content.js"],
     "run_at": "document_idle",
-    "all_frames": false
+    "all_frames": true
   }],
   "action": { "default_popup": "src/popup.html" },
   "options_page": "src/options.html",
@@ -106,6 +106,7 @@ test/                RFC 6238 test vectors, run with `node --test`
 
 - **Only the `storage` permission.** No `tabs`, no `scripting`, no `<all_urls>`. The install prompt then only asks for "read and change your data on online.tugraz.at and sso.tugraz.at".
 - `connect-src 'none'` makes "no network calls" a rule Chrome enforces, not just a promise.
+- `all_frames: true`, because the CA2 login may render inside a frame. The script still only runs on the two TU Graz hosts.
 - The host list is fixed after the live check (section 9). If the 2FA step runs on a different host, that host is added.
 
 ---
@@ -166,7 +167,8 @@ The exact selectors come from the live check (section 9). The heuristic above is
 
 privacyIDEA locks the token after too many wrong codes. So:
 
-- **At most one automatic try per page load.** If the OTP field shows up again, or an error text appears (`/ungültig|falsch|invalid|failed/i` near the field), the extension stops, shows "Code was rejected. Check the clock or the key", and doesn't try again until the next manual login.
+- **At most one automatic try per page load, and one per time window across reloads** (the service worker remembers the last automatic code).
+- **Rejection detection:** If the OTP field shows up again, or an error text appears (`/ungültig|falsch|invalid|failed/i` near the field), the extension stops, shows "Code was rejected. Check the clock or the key", and doesn't try again until the next manual login.
 - It never submits a code twice.
 - The popup always shows the current code, so you can type it in yourself.
 
